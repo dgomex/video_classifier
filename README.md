@@ -1,69 +1,42 @@
-# Video Classifier
+# Video Classifier using Ollama and Qwen2.5-VL-72B-Instruct
 
-Zero-shot video classifier using OpenAI CLIP. No training required.
+This project allows you to classify a video into a category using the Qwen2.5-VL-72B-Instruct LLM model via the Ollama framework. You provide a video and a list of categories (with descriptions), and the model returns the best-matching category.
 
-## Setup
+## Features
+- Upload a video file
+- Send video frames and category descriptions to the LLM
+- Receive classification result
 
-```bash
-# Install UV if you don't have it
-curl -Ls https://astral.sh/uv/install.sh | sh
-
-# Install dependencies
-uv sync
-
-# Install with dev dependencies
-uv sync --extra dev
-```
+## Requirements
+- Python 3.11+
+- Ollama (with Qwen2.5-VL-72B-Instruct model pulled)
+- Packages: ollama, moviepy, opencv-python, requests
 
 ## Usage
+1. Ensure Ollama is running and the qwen2.5vl:3b model is available:
+   ```
+   ollama pull qwen2.5vl:3b
+   ollama serve
+   ```
+2. Run the classifier script:
+   ```
+   python main.py --video path_to_video.mp4 --categories categories.json
+   ```
+   - `--video`: Path to the video file
+   - `--categories`: JSON file with categories and descriptions
 
-### Python API
-
-```python
-from video_classifier import VideoClassifier
-
-classifier = VideoClassifier(
-    categories=["hotel", "restaurant", "experience", "attraction", "vacation rental"]
-)
-
-result = classifier.classify("my_video.mp4")
-print(result.category)       # "hotel"
-print(result.confidence)     # 0.87
-print(result.all_scores)     # {"hotel": 0.87, "restaurant": 0.06, ...}
+## Example `categories.json`
+```
+[
+  {"name": "Sports", "description": "Videos related to sporting events or activities."},
+  {"name": "News", "description": "News broadcasts or reports."},
+  {"name": "Documentary", "description": "Informative or educational content."}
+]
 ```
 
-### CLI — single video
+## Output
+The script prints the predicted category for the video.
 
-```bash
-uv run classify my_video.mp4
+---
 
-# Custom categories
-uv run classify my_video.mp4 -c hotel -c restaurant -c experience
-
-# Sample more frames (slower, more accurate)
-uv run classify my_video.mp4 --sample-every 30
-```
-
-### CLI — batch folder
-
-```bash
-uv run classify batch ./videos/
-
-# Custom extensions
-uv run classify batch ./videos/ --ext mp4,mov
-```
-
-## Configuration
-
-| Parameter | Default | Description |
-|---|---|---|
-| `categories` | hotel, restaurant... | Labels to classify against |
-| `sample_every_n_frames` | 60 | 1 frame every N (at 30fps = every 2s) |
-| `model_name` | clip-vit-base-patch32 | Any CLIP model on HuggingFace |
-| `prompt_template` | "a photo of a {category}" | Text prompt sent to CLIP |
-
-## Running Tests
-
-```bash
-uv run pytest
-```
+**Note:** This is a basic template. You may need to adjust frame extraction and prompt formatting for best results.

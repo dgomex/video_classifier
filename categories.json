@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Inspiration",
+    "description": "Cinematic visuals and bucket list goals to spark your next big adventure."
+  },
+  {
+    "name": "Breakfast & Brunch",
+    "description": "The best spots for morning coffee, fluffy pancakes, and aesthetic brunch plates."
+  },
+  {
+    "name": "Lunch & Dinner",
+    "description": "From local street food to fine dining, find the perfect meal for any craving."
+  },
+  {
+    "name": "Bars",
+    "description": "Rooftop lounges, hidden speakeasies, and the best local craft beer scenes."
+  },
+  {
+    "name": "Fast Food",
+    "description": "Quick, tasty, and budget-friendly bites for travelers on the move."
+  },
+  {
+    "name": "Nightlife",
+    "description": "After-dark guides to clubs, live music venues, and vibrant party districts."
+  },
+  {
+    "name": "Culture & History",
+    "description": "Dive into museums, ancient landmarks, and the stories that shaped the city."
+  },
+  {
+    "name": "Outdoor & Adventure",
+    "description": "Adrenaline-pumping hikes, water sports, and breathtaking natural wonders."
+  },
+  {
+    "name": "Leisure & Relaxation",
+    "description": "Spas, quiet parks, and serene spots to unwind and recharge."
+  },
+  {
+    "name": "Entertainment",
+    "description": "Theatre, cinema, sporting events, and local festivals."
+  },
+  {
+    "name": "Shopping",
+    "description": "High-street fashion, local boutiques, and vibrant artisan markets."
+  },
+  {
+    "name": "Hidden Gems",
+    "description": "Secret spots and off-the-beaten-path locations only locals know about."
+  },
+  {
+    "name": "Famous Places",
+    "description": "The must-see landmarks and iconic sights every traveler needs to visit."
+  },
+  {
+    "name": "Tours",
+    "description": "Expert-led experiences, from walking tours to private excursions."
+  },
+  {
+    "name": "Hotels",
+    "description": "Premium stays, boutique gems, and luxury resorts for every budget."
+  },
+  {
+    "name": "AirBnb",
+    "description": "Unique local homes, cozy apartments, and one-of-a-kind stays."
+  },
+  {
+    "name": "Bus",
+    "description": "Navigating local bus routes and long-distance coaches with ease."
+  },
+  {
+    "name": "Subway/Metro",
+    "description": "Fast and efficient underground travel guides for major cities."
+  },
+  {
+    "name": "Airport",
+    "description": "Tips for navigating terminals, lounges, and airport transfers."
+  },
+  {
+    "name": "Quick Rides",
+    "description": "Short-distance options like scooters, bikes, and local tuk-tuks."
+  },
+  {
+    "name": "Ride-Sharing",
+    "description": "How to use local apps and services for reliable car pickups."
+  },
+  {
+    "name": "Ferry",
+    "description": "Scenic water travel, island hopping, and commuter boat routes."
+  },
+  {
+    "name": "Currency",
+    "description": "Practical advice on local cash, ATMs, and exchange rate tips."
+  },
+  {
+    "name": "Safety",
+    "description": "Vital information on local laws, safe areas, and emergency contacts."
+  },
+  {
+    "name": "Helpful Apps",
+    "description": "The best digital tools for translation, maps, and local services."
+  }
+]
