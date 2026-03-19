@@ -7,17 +7,31 @@ This project allows you to classify a video into a category using the Qwen2.5-VL
 - Send video frames and category descriptions to the LLM
 - Receive classification result
 
+
 ## Requirements
+
 - Python 3.11+
-- Ollama (with Qwen2.5-VL-72B-Instruct model pulled)
-- Packages: ollama, moviepy, opencv-python, requests
+- Ollama Python client (cloud API)
+- opencv-python
+
+Install dependencies:
+
+```
+pip install -r requirements.txt
+```
 
 ## Usage
-1. Ensure Ollama is running and the qwen2.5vl:3b model is available:
-   ```
-   ollama pull qwen2.5vl:3b
-   ollama serve
-   ```
+
+1. Set your Ollama Cloud API key as an environment variable:
+   - On Windows (PowerShell):
+     ```
+     $env:OLLAMA_API_KEY="your_api_key_here"
+     ```
+   - On Linux/macOS:
+     ```
+     export OLLAMA_API_KEY="your_api_key_here"
+     ```
+
 2. Run the classifier script:
    ```
    python main.py --video path_to_video.mp4 --categories categories.json
