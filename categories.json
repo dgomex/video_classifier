@@ -5,98 +5,66 @@
   },
   {
     "name": "Breakfast & Brunch",
-    "description": "The best spots for morning coffee, fluffy pancakes, and aesthetic brunch plates."
+    "description": "Morning to early afternoon dining. Visuals: Coffee, eggs, pastries, bright natural light, relaxed social groups."
   },
   {
     "name": "Lunch & Dinner",
-    "description": "From local street food to fine dining, find the perfect meal for any craving."
+    "description": "Mid-day to late evening substantial meals. Visuals: Plated entrees, restaurant interiors, savory dishes, sit-down service."
   },
   {
     "name": "Bars",
-    "description": "Rooftop lounges, hidden speakeasies, and the best local craft beer scenes."
+    "description": "Beverage-focused venues. Visuals: Cocktails, beer taps, wine glasses, bartenders, lounge seating, conversational atmosphere."
   },
   {
-    "name": "Fast Food",
-    "description": "Quick, tasty, and budget-friendly bites for travelers on the move."
+    "name": "Rooftops",
+    "description": "Elevated venues on building tops. Visuals: Must show cityscapes, horizons, or high-altitude views as the primary background."
   },
   {
     "name": "Nightlife",
-    "description": "After-dark guides to clubs, live music venues, and vibrant party districts."
+    "description": "High-energy late-night venues. Visuals: Dance floors, DJs, strobe lights, dark environments, clubbing, and loud music."
   },
   {
     "name": "Culture & History",
-    "description": "Dive into museums, ancient landmarks, and the stories that shaped the city."
+    "description": "Educational or heritage sites. Visuals: Museums, monuments, ancient architecture, art galleries, and historical plaques."
   },
   {
     "name": "Outdoor & Adventure",
-    "description": "Adrenaline-pumping hikes, water sports, and breathtaking natural wonders."
+    "description": "Active nature-based experiences. Visuals: Hiking, water sports, mountains, forests, and physical movement/exercise."
   },
   {
     "name": "Leisure & Relaxation",
-    "description": "Spas, quiet parks, and serene spots to unwind and recharge."
+    "description": "Low-energy wellness. Visuals: Spas, beach lounging, park picnics, quiet scenic views, and slow lifestyle shots."
   },
   {
     "name": "Entertainment",
-    "description": "Theatre, cinema, sporting events, and local festivals."
+    "description": "Organized events/shows. Visuals: Theater stages, cinemas, concerts, bowling alleys, or amusement park rides."
   },
   {
     "name": "Shopping",
-    "description": "High-street fashion, local boutiques, and vibrant artisan markets."
+    "description": "Commercial exchange. Visuals: Malls, luxury boutiques, local markets, storefronts, and people carrying shopping bags."
   },
   {
     "name": "Hidden Gems",
-    "description": "Secret spots and off-the-beaten-path locations only locals know about."
+    "description": "Secret or non-touristy spots. Visuals: Narrow alleys, local hole-in-the-walls, lack of crowds, unpolished/authentic charm."
   },
   {
     "name": "Famous Places",
-    "description": "The must-see landmarks and iconic sights every traveler needs to visit."
+    "description": "Globally recognized icons. Visuals: Famous landmarks (Eiffel Tower, etc.), heavy tourist crowds, postcard angles."
   },
   {
     "name": "Tours",
-    "description": "Expert-led experiences, from walking tours to private excursions."
+    "description": "Guided learning. Visuals: A guide leading a group, people wearing headsets, tour buses, or educational walking groups."
   },
   {
-    "name": "Hotels",
-    "description": "Premium stays, boutique gems, and luxury resorts for every budget."
+    "name": "Accomodation",
+    "description": "Lodging/Stay. Visuals: Hotel lobbies, bedrooms, resort pools, Airbnb interiors, and hospitality amenities."
   },
   {
-    "name": "AirBnb",
-    "description": "Unique local homes, cozy apartments, and one-of-a-kind stays."
+    "name": "Transportation",
+    "description": "Movement logistics. Visuals: Trains, planes, taxis, rental scooters, transit maps, and airport/station signage."
   },
   {
-    "name": "Bus",
-    "description": "Navigating local bus routes and long-distance coaches with ease."
-  },
-  {
-    "name": "Subway/Metro",
-    "description": "Fast and efficient underground travel guides for major cities."
-  },
-  {
-    "name": "Airport",
-    "description": "Tips for navigating terminals, lounges, and airport transfers."
-  },
-  {
-    "name": "Quick Rides",
-    "description": "Short-distance options like scooters, bikes, and local tuk-tuks."
-  },
-  {
-    "name": "Ride-Sharing",
-    "description": "How to use local apps and services for reliable car pickups."
-  },
-  {
-    "name": "Ferry",
-    "description": "Scenic water travel, island hopping, and commuter boat routes."
-  },
-  {
-    "name": "Currency",
-    "description": "Practical advice on local cash, ATMs, and exchange rate tips."
-  },
-  {
-    "name": "Safety",
-    "description": "Vital information on local laws, safe areas, and emergency contacts."
-  },
-  {
-    "name": "Helpful Apps",
-    "description": "The best digital tools for translation, maps, and local services."
+    "name": "Essentials",
+    "description": "Practical utility. Visuals: Pharmacies, ATMs, grocery stores, SIM card shops, and health/safety information."
   }
 ]
