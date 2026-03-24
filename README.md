@@ -36,8 +36,22 @@ pip install -r requirements.txt
    ```
    python main.py --video path_to_video.mp4 --categories categories.json
    ```
+
+   Required:
+
    - `--video`: Path to the video file
    - `--categories`: JSON file with categories and descriptions
+
+   Optional:
+
+   - `--model`: Ollama model name (default: `gemma3:4b-cloud`)
+   - `--num-frames`: Number of key frames sampled evenly across the video (default: `5`)
+
+   Example with optional flags:
+
+   ```
+   python main.py --video path_to_video.mp4 --categories categories.json --model "gemma3:4b-cloud" --num-frames 10
+   ```
 
 ## Example `categories.json`
 ```

@@ -7,6 +7,8 @@ from ollama import Client
 import os
 from typing import List, Dict
 from datetime import datetime
+
+
 def print_with_time(message: str, start_time=None):
     now = datetime.now()
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
@@ -17,7 +19,7 @@ def print_with_time(message: str, start_time=None):
         print(f"[{timestamp}] {message}")
 
 OLLAMA_CLOUD_HOST = "https://ollama.com"
-MODEL_NAME = "qwen3-vl:235b-cloud"
+DEFAULT_MODEL_NAME = "gemma3:4b-cloud"
 
 def extract_key_frames(video_path: str, num_frames: int = 5) -> List[str]:
     """
@@ -47,12 +49,17 @@ def build_prompt(categories: List[Dict[str, str]]) -> str:
     return prompt
 
 
-def query_ollama(frames: List[str], prompt: str, start_time=None) -> str:
+def query_ollama(
+    frames: List[str],
+    prompt: str,
+    start_time=None,
+    model_name: str = DEFAULT_MODEL_NAME,
+) -> str:
     # Use Ollama cloud API with API key
     api_key = os.environ.get('OLLAMA_API_KEY')
     if not api_key:
         raise RuntimeError("OLLAMA_API_KEY environment variable not set.")
-    print_with_time(f"Sending request to Ollama Cloud with model {MODEL_NAME}...", start_time)
+    print_with_time(f"Sending request to Ollama Cloud with model {model_name}...", start_time)
     req_start = datetime.now()
     client = Client(
         host=OLLAMA_CLOUD_HOST,
@@ -67,7 +74,7 @@ def query_ollama(frames: List[str], prompt: str, start_time=None) -> str:
         }
     ]
     # Only get the first response part (no streaming)
-    response = client.chat(MODEL_NAME, messages=messages, stream=False)
+    response = client.chat(model_name, messages=messages, stream=False)
     print_with_time(f"Received response from Ollama Cloud", req_start)
     # The response is a dict with 'message' key
     return response['message']['content'] if 'message' in response and 'content' in response['message'] else str(response)
@@ -78,6 +85,17 @@ def main():
     parser = argparse.ArgumentParser(description="Classify a video using Qwen2.5-VL-72B-Instruct via Ollama.")
     parser.add_argument('--video', required=True, help='Path to video file')
     parser.add_argument('--categories', required=True, help='Path to categories JSON file')
+    parser.add_argument(
+        '--model',
+        default=DEFAULT_MODEL_NAME,
+        help=f'Ollama model name (default: {DEFAULT_MODEL_NAME})',
+    )
+    parser.add_argument(
+        '--num-frames',
+        type=int,
+        default=5,
+        help='Number of key frames to sample from the video (default: 5)',
+    )
     args = parser.parse_args()
 
     if not os.path.exists(args.video):
@@ -92,12 +110,12 @@ def main():
 
     print_with_time("Extracting frames from video...", start_time)
     frame_start = datetime.now()
-    frames = extract_key_frames(args.video, num_frames=30)
+    frames = extract_key_frames(args.video, num_frames=args.num_frames)
     print_with_time(f"Extracted {len(frames)} frames.", frame_start)
 
     prompt = build_prompt(categories)
     print_with_time("Querying LLM for classification...", start_time)
-    result = query_ollama(frames, prompt, start_time)
+    result = query_ollama(frames, prompt, start_time, model_name=args.model)
     print_with_time("\nPredicted Category:", start_time)
     print(result.strip())
 
