@@ -75,7 +75,10 @@ def image_to_base64_frames(image_path: str) -> List[str]:
     return [base64.b64encode(buf).decode("utf-8")]
 
 
-def build_prompt(categories: List[Dict[str, str]]) -> str:
+def build_prompt(
+    categories: List[Dict[str, str]],
+    media_description: Optional[str] = None,
+) -> str:
     prompt = (
         "You are a media classifier. Given the following video or image and a list of categories, "
         "classify the content into the most appropriate category.\n"
@@ -83,6 +86,12 @@ def build_prompt(categories: List[Dict[str, str]]) -> str:
     prompt += "Categories:\n"
     for cat in categories:
         prompt += f"- {cat['name']}: {cat['description']}\n"
+    if media_description:
+        prompt += (
+            "\nThe following text describes this media from its source metadata. "
+            "Use it together with what you see in the frames or image to choose the best category.\n"
+            f"Description:\n{media_description}\n"
+        )
     prompt += "\nAnalyze the media and respond ONLY with the category name."
     return prompt
 
@@ -329,8 +338,9 @@ def classify_media_path(
     model_name: str,
     num_frames: int,
     start_time: datetime,
+    media_description: Optional[str] = None,
 ) -> str:
-    prompt = build_prompt(categories)
+    prompt = build_prompt(categories, media_description=media_description)
     if is_video_path(media_path):
         print_with_time(f"Extracting frames from {media_path}...", start_time)
         frames = extract_key_frames(media_path, num_frames=num_frames)
@@ -437,8 +447,21 @@ def main() -> None:
             if not isinstance(metadata_obj, dict):
                 raise ValueError("metadata JSON root must be an object")
 
+            desc_raw = metadata_obj.get("description")
+            if isinstance(desc_raw, str):
+                media_description = desc_raw.strip() or None
+            elif desc_raw:
+                media_description = str(desc_raw).strip() or None
+            else:
+                media_description = None
+
             category = classify_media_path(
-                media_path, categories, args.model, args.num_frames, start_time
+                media_path,
+                categories,
+                args.model,
+                args.num_frames,
+                start_time,
+                media_description=media_description,
             )
             classified_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
             enriched = {**metadata_obj, "classified_at": classified_at, "category": category}
