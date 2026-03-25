@@ -266,13 +266,38 @@ def ensure_gsheet_secret(con: duckdb.DuckDBPyConnection) -> None:
 
 
 def read_sheet_headers(con: duckdb.DuckDBPyConnection, spreadsheet_url: str, sheet_name: str) -> List[str]:
+    """Read header names from row 1 only, anchored at A.
+
+    Reading a tall range makes DuckDB widen the table to max(header width, first data row
+    width); a misaligned data row then yields synthetic column names (column13, …) and the
+    next write pads empty leading cells—shifting values right (e.g. into column M).
+    """
     u = sql_string_literal(spreadsheet_url)
     s = sql_string_literal(sheet_name)
+    rng = sql_string_literal("A1:ZZ1")
     try:
-        rel = con.sql(f"SELECT * FROM read_gsheet({u}, sheet = {s})")
+        rel = con.sql(
+            f"SELECT * FROM read_gsheet({u}, sheet = {s}, range = {rng}, all_varchar = true)"
+        )
         return list(rel.columns)
     except Exception:
         return []
+
+
+def count_gsheet_body_rows(
+    con: duckdb.DuckDBPyConnection, spreadsheet_url: str, sheet_name: str
+) -> int:
+    """Number of data rows under row 1 (row 1 is treated as the header)."""
+    u = sql_string_literal(spreadsheet_url)
+    s = sql_string_literal(sheet_name)
+    rng = sql_string_literal("A1:ZZ10000")
+    try:
+        row = con.sql(
+            f"SELECT COUNT(*) AS n FROM read_gsheet({u}, sheet = {s}, range = {rng}, all_varchar = true)"
+        ).fetchone()
+        return int(row[0]) if row and row[0] is not None else 0
+    except Exception:
+        return 0
 
 
 def copy_temp_table_to_gsheet(
@@ -284,6 +309,7 @@ def copy_temp_table_to_gsheet(
     range_a1: Optional[str] = None,
     overwrite_range: Optional[bool] = None,
     overwrite_sheet: Optional[bool] = None,
+    header: Optional[bool] = None,
 ) -> None:
     u = sql_string_literal(spreadsheet_url)
     sh = sql_string_literal(sheet_name)
@@ -294,6 +320,10 @@ def copy_temp_table_to_gsheet(
         opts.append(f"overwrite_range {'true' if overwrite_range else 'false'}")
     if overwrite_sheet is not None:
         opts.append(f"overwrite_sheet {'true' if overwrite_sheet else 'false'}")
+    # When omitted, the extension sets header = overwrite_range || overwrite_sheet and writes
+    # DuckDB column names (c0, c1, …) as an extra row—never wanted for our temp tables.
+    if header is not None:
+        opts.append(f"header {'true' if header else 'false'}")
     opt_str = ", ".join(opts)
     con.execute(f"COPY {table_name} TO {u} ({opt_str});")
 
@@ -318,6 +348,7 @@ def write_header_row(
         sheet_name,
         range_a1=rng,
         overwrite_range=True,
+        header=False,
     )
     con.execute("DROP TABLE IF EXISTS _gsheet_hdr;")
 
@@ -334,13 +365,21 @@ def append_data_row(
     con.execute(f"CREATE TEMP TABLE _gsheet_row ({col_defs});")
     vals = ", ".join(sql_string_literal(flat.get(h, "")) for h in headers)
     con.execute(f"INSERT INTO _gsheet_row VALUES ({vals});")
+    end_col = excel_column_letters(len(headers))
+    # Avoid Values.Append table detection (can place rows starting at the wrong column).
+    # Row 1 is headers; first body row is 2 + number of existing body rows.
+    body_rows = count_gsheet_body_rows(con, spreadsheet_url, sheet_name)
+    next_row = 2 + body_rows
+    row_range = f"A{next_row}:{end_col}{next_row}"
     copy_temp_table_to_gsheet(
         con,
         "_gsheet_row",
         spreadsheet_url,
         sheet_name,
+        range_a1=row_range,
         overwrite_sheet=False,
-        overwrite_range=False,
+        overwrite_range=True,
+        header=False,
     )
     con.execute("DROP TABLE IF EXISTS _gsheet_row;")
 
