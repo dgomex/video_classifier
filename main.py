@@ -19,7 +19,7 @@ DEFAULT_SHEET_NAME = "Sheet1"
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v", ".wmv", ".flv"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tiff", ".tif"}
 
-PRIORITY_KEYS = ("classified_at", "category")
+PRIORITY_KEYS = ("classified_at", "category", "place_name", "google_maps_url")
 
 
 def print_with_time(message: str, start_time: Optional[datetime] = None) -> None:
@@ -79,21 +79,92 @@ def build_prompt(
     categories: List[Dict[str, str]],
     media_description: Optional[str] = None,
 ) -> str:
+    names = [str(c["name"]) for c in categories]
+    names_csv = ", ".join(repr(n) for n in names)
     prompt = (
         "You are a media classifier. Given the following video or image and a list of categories, "
-        "classify the content into the most appropriate category.\n"
+        "classify the content and infer location details when possible.\n"
     )
-    prompt += "Categories:\n"
+    prompt += "Categories (use category exactly as one of these names):\n"
     for cat in categories:
         prompt += f"- {cat['name']}: {cat['description']}\n"
     if media_description:
         prompt += (
             "\nThe following text describes this media from its source metadata. "
-            "Use it together with what you see in the frames or image to choose the best category.\n"
+            "Use it together with what you see in the frames or image.\n"
             f"Description:\n{media_description}\n"
         )
-    prompt += "\nAnalyze the media and respond ONLY with the category name."
+    prompt += (
+        "\nRespond with a single JSON object only (no markdown fences, no other text). "
+        "Use these keys exactly:\n"
+        '- "category": string, must be exactly one of: '
+        f"{names_csv}\n"
+        '- "place_name": string, the human-readable place name if you can infer it from the media '
+        "or description; otherwise an empty string.\n"
+        '- "google_maps_url": string, a full https URL that opens in a browser (e.g. '
+        '"https://www.google.com/maps/search/?api=1&query=..." or '
+        '"https://www.google.com/maps/place/...") pointing to that place; '
+        "otherwise an empty string if unknown.\n"
+        "Do not invent coordinates; base the link on the place you name when possible."
+    )
     return prompt
+
+
+def parse_classification_response(raw: str) -> Dict[str, str]:
+    """Parse LLM JSON into fixed string fields for metadata and the sheet."""
+    text = raw.strip()
+    if not text:
+        raise ValueError("Empty LLM response")
+
+    def try_load_json(s: str) -> Optional[Dict[str, Any]]:
+        s = s.strip()
+        try:
+            v = json.loads(s)
+            return v if isinstance(v, dict) else None
+        except json.JSONDecodeError:
+            return None
+
+    obj = try_load_json(text)
+    if obj is None and text.startswith("```"):
+        lines = text.split("\n")
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        obj = try_load_json("\n".join(lines))
+
+    if obj is None:
+        start, end = text.find("{"), text.rfind("}")
+        if start != -1 and end > start:
+            obj = try_load_json(text[start : end + 1])
+
+    if not isinstance(obj, dict):
+        raise ValueError("LLM response is not a JSON object")
+
+    def as_str(key: str) -> str:
+        v = obj.get(key)
+        if v is None:
+            return ""
+        return str(v).strip()
+
+    category = as_str("category")
+    if not category:
+        raise ValueError('LLM JSON missing non-empty "category"')
+
+    place_name = as_str("place_name")
+    google_maps_url = as_str("google_maps_url")
+    if google_maps_url and not (
+        google_maps_url.startswith("https://") or google_maps_url.startswith("http://")
+    ):
+        raise ValueError(
+            '"google_maps_url" must be empty or a full http(s) URL suitable for a browser'
+        )
+
+    return {
+        "category": category,
+        "place_name": place_name,
+        "google_maps_url": google_maps_url,
+    }
 
 
 def query_ollama(
@@ -339,7 +410,7 @@ def classify_media_path(
     num_frames: int,
     start_time: datetime,
     media_description: Optional[str] = None,
-) -> str:
+) -> Dict[str, str]:
     prompt = build_prompt(categories, media_description=media_description)
     if is_video_path(media_path):
         print_with_time(f"Extracting frames from {media_path}...", start_time)
@@ -353,7 +424,7 @@ def classify_media_path(
             raise RuntimeError("Could not read image file.")
     print_with_time("Querying LLM for classification...", start_time)
     raw = query_ollama(frames, prompt, start_time, model_name=model_name)
-    return raw.strip()
+    return parse_classification_response(raw)
 
 
 def main() -> None:
@@ -455,7 +526,7 @@ def main() -> None:
             else:
                 media_description = None
 
-            category = classify_media_path(
+            llm_out = classify_media_path(
                 media_path,
                 categories,
                 args.model,
@@ -464,13 +535,21 @@ def main() -> None:
                 media_description=media_description,
             )
             classified_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-            enriched = {**metadata_obj, "classified_at": classified_at, "category": category}
+            enriched = {
+                **metadata_obj,
+                "classified_at": classified_at,
+                **llm_out,
+            }
             flat = flatten_record_for_sheet(enriched)
 
             headers_state = append_flat_row_to_gsheet(
                 con, spreadsheet_url, args.sheet, flat, headers_state
             )
-            print_with_time(f"Appended row for {rel} → category: {category}", start_time)
+            print_with_time(
+                f"Appended row for {rel} → category: {llm_out['category']}, "
+                f"place: {llm_out['place_name'] or '(none)'}",
+                start_time,
+            )
 
             atomic_write_json(meta_path, enriched)
             move_to_classified(root, media_path, meta_path)
