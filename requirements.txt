@@ -1,2 +1,3 @@
 opencv-python
 ollama
+duckdb>=1.4.0,<2
