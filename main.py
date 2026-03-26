@@ -19,7 +19,13 @@ DEFAULT_SHEET_NAME = "Sheet1"
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v", ".wmv", ".flv"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tiff", ".tif"}
 
-PRIORITY_KEYS = ("classified_at", "category", "place_name", "google_maps_url")
+PRIORITY_KEYS = (
+    "classified_at",
+    "category",
+    "language",
+    "place_name",
+    "google_maps_url",
+)
 
 
 def print_with_time(message: str, start_time: Optional[datetime] = None) -> None:
@@ -99,8 +105,16 @@ def build_prompt(
         "Use these keys exactly:\n"
         '- "category": string, must be exactly one of: '
         f"{names_csv}\n"
-        '- "place_name": string, the human-readable place name if you can infer it from the media '
-        "or description; otherwise an empty string.\n"
+        '- "language": string, the primary language of the post inferred from on-screen text, '
+        "any spoken or written content implied by the visuals, and the description above; "
+        'prefer a two-letter ISO 639-1 code (e.g. "en", "pt") when you can tell, otherwise a '
+        'short English language name, or an empty string if unknown.\n'
+        '- "place_name": string. Count the distinct physical locations mentioned. '
+        'If the count is 0 or greater than 1, you must return an empty string "". '
+        'Strict Exclusion: If the content is a list, a "Top X", a compilation, or a '
+        '"best of" summary featuring multiple spots, do not select a representative name. '
+        'Return "". Only if the content centers on one single specific establishment or '
+        'landmark, provide that name. Example Logic: "10 Best Restaurants" = 10 locations = "".\n'
         '- "google_maps_url": string, a full https URL that opens in a browser (e.g. '
         '"https://www.google.com/maps/search/?api=1&query=..." or '
         '"https://www.google.com/maps/place/...") pointing to that place; '
@@ -151,6 +165,7 @@ def parse_classification_response(raw: str) -> Dict[str, str]:
     if not category:
         raise ValueError('LLM JSON missing non-empty "category"')
 
+    language = as_str("language")
     place_name = as_str("place_name")
     google_maps_url = as_str("google_maps_url")
     if google_maps_url and not (
@@ -162,6 +177,7 @@ def parse_classification_response(raw: str) -> Dict[str, str]:
 
     return {
         "category": category,
+        "language": language,
         "place_name": place_name,
         "google_maps_url": google_maps_url,
     }
@@ -584,9 +600,10 @@ def main() -> None:
             headers_state = append_flat_row_to_gsheet(
                 con, spreadsheet_url, args.sheet, flat, headers_state
             )
+            lang_disp = llm_out.get("language") or "(unknown)"
             print_with_time(
                 f"Appended row for {rel} → category: {llm_out['category']}, "
-                f"place: {llm_out['place_name'] or '(none)'}",
+                f"language: {lang_disp}, place: {llm_out['place_name'] or '(none)'}",
                 start_time,
             )
 
